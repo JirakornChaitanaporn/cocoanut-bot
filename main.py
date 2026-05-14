@@ -39,12 +39,21 @@ async def help(ctx):
     
 @bot.command(name="DEBUG_read_image")
 async def check_read_image(ctx):
-    # Check if there is at least one attachment
-    if ctx.message.attachments:
-        # Get the first attachment in the list
-        image_url = ctx.message.attachments[0].url
-        await ctx.send(f"I see your image! Here is the link: {image_url}")
+    # 1. Check if any attachment exists
+    if not ctx.message.attachments:
+        return await ctx.send("You didn't attach anything!")
+
+    # 2. Get the first attachment
+    attachment = ctx.message.attachments[0]
+    
+    # 3. Define allowed extensions
+    valid_extensions = ('.png', '.jpeg', '.jpg')
+
+    # 4. Validate the filename
+    if attachment.filename.lower().endswith(valid_extensions):
+        image_url = attachment.url
+        await ctx.send(f"Valid image detected! Link: {image_url}")
     else:
-        await ctx.send("You didn't attach an image!")
+        await ctx.send("That's not a valid image file (.png, .jpg, or .jpeg only)!")
         
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
