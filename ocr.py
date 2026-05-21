@@ -1,0 +1,2 @@
+class KoreanOCR:
+    pass
