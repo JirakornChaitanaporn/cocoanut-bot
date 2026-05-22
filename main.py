@@ -3,7 +3,8 @@ from discord.ext import commands
 import logging
 from dotenv import load_dotenv
 import os
-
+from ocr import KoreanOcr
+import cv2
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -55,5 +56,27 @@ async def check_read_image(ctx):
         await ctx.send(f"Valid image detected! Link: {image_url}")
     else:
         await ctx.send("That's not a valid image file (.png, .jpg, or .jpeg only)!")
+        
+@bot.command(name="DEBUG_read_image_text")
+async def check_read_image_text(ctx):
+    # 1. Check if any attachment exists
+    if not ctx.message.attachments:
+        return await ctx.send("You didn't attach anything!")
+
+    # 2. Get the first attachment
+    attachment = ctx.message.attachments[0]
+    
+    # 3. Define allowed extensions
+    valid_extensions = ('.png', '.jpeg', '.jpg', '.webp')
+
+    # 4. Validate the filename
+    if attachment.filename.lower().endswith(valid_extensions):
+        image_url = attachment.url
+        #call korean ocr
+        read_text = KoreanOcr.get_instance().make_text(image_url)
+        await ctx.send(f"{ctx.author.mention}\n{read_text}")
+    else:
+        await ctx.send("That's not a valid image file (.png, .jpg, or .jpeg only)!")
+        
         
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
