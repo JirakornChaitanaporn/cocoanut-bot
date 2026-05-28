@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from cores.ocr import KoreanOcr
-
+from cores.transalate_api import Translator_api
 
 class General(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -28,15 +28,25 @@ class General(commands.Cog):
         if not ctx.message.attachments:
             return await ctx.send(f"{ctx.author.mention}\nYou didn't attach anything!")
 
-        attachment = ctx.message.attachments[0]
         valid_extensions = ('.png', '.jpeg', '.jpg', '.webp')
+        response_lines = [f"**OCR Results Summary:**\n"]
+        processed_any = False
 
-        if attachment.filename.lower().endswith(valid_extensions):
-            image_url = attachment.url
-            read_text = KoreanOcr.get_instance().make_text(image_url)
-            await ctx.send(f"{ctx.author.mention}\n{read_text}")
-        else:
-            await ctx.send(f"{ctx.author.mention}\nThat's not a valid image file (.png, .jpg, or .jpeg only)!")
+        for index, attachment in enumerate(ctx.message.attachments, start=1):
+            if attachment.filename.lower().endswith(valid_extensions):
+                processed_any = True
+                read_text = KoreanOcr.get_instance().make_text(attachment.url)
+                response_lines.append(f"**Image #{index}:**\n{read_text}\n")
+            else:
+                response_lines.append(f"⚠️ **Image #{index} Skipped `{attachment.filename}` (Invalid format)\n")
+
+        if not processed_any:
+            return await ctx.send(f"{ctx.author.mention}\nNone of the attached files were valid images (.png, .jpg, .jpeg, .webp)!")
+
+        ocr_result = "\n".join(response_lines)
+        translated = f"{ctx.author.mention}\n{Translator_api.get_instance().translate(ocr_result)}"
+  
+        return await ctx.send(translated)
 
 
 async def setup(bot: commands.Bot):

@@ -8,7 +8,7 @@ class KoreanOcr:
 
     def __init__(self):
         if KoreanOcr.__instance is None:
-            self.reader = easyocr.Reader(['ko'])
+            self.__reader = easyocr.Reader(['ko'])
             #init stuff here
             KoreanOcr.__instance = self
         else:
@@ -67,20 +67,19 @@ class KoreanOcr:
         final_processed = cv2.resize(deskewed, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
 
         # Run OCR on the high-contrast grayscale image
-        results = self.reader.readtext(final_processed)
+        results = self.__reader.readtext(final_processed)
 
         # Create a list to store every valid line of text found
         extracted_lines = []
 
         for r in results:
             box, text, confidence = r
-            if confidence < 0.23:
+            if confidence < 0.24:
                 continue
             # Clean up any trailing/leading whitespaces and add to our list
             extracted_lines.append(text.strip())
 
         # Join the list items together into one big string separated by newlines
         final_text_string = "\n".join(extracted_lines)
-        
         return final_text_string
 
