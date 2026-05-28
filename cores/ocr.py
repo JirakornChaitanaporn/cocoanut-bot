@@ -12,7 +12,7 @@ class KoreanOcr:
             #init stuff here
             KoreanOcr.__instance = self
         else:
-            raise Exception("KoreanOcr can't be used twice!")
+            raise Exception("KoreanOcr can't be initiated twice!")
 
     @staticmethod
     def get_instance():
@@ -21,7 +21,6 @@ class KoreanOcr:
         return KoreanOcr.__instance   
 
     def make_text(self, image_url):
-        
         req = urllib.request.Request(image_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
             image_bytes = response.read()
@@ -75,7 +74,7 @@ class KoreanOcr:
 
         for r in results:
             box, text, confidence = r
-            if confidence < 0.25:
+            if confidence < 0.23:
                 continue
             # Clean up any trailing/leading whitespaces and add to our list
             extracted_lines.append(text.strip())
@@ -85,19 +84,3 @@ class KoreanOcr:
         
         return final_text_string
 
-    # @classmethod
-    # def get_available_sound(cls):
-    #     return cls.__available_sound
-    
-    # @classmethod
-    # def set_available_sound(cls, is_sound):
-    #     cls.__available_sound = is_sound
-
-    # @classmethod
-    # def set_volume(cls, volume):
-    #     cls.__volume = volume
-    
-    
-#how to call this class
-# SoundEffects.get_instance().play("game_win")
-# SoundEffects.set_volume(self.__volume)
