@@ -38,7 +38,7 @@ class Translator_api:
             try:
                 response = self.__client.models.generate_content(
                     model=model_name,
-                    contents=f"Translate this ocr extracted manhwa text to Thai, maintaining format exactly: {korean_text}",
+                    contents=f"Translate this ocr extracted manhwa text to Thai, maintaining format for image for line just say line1: thai(next line) line 2:thai like this \n {korean_text}",
                 )
                 return response.text
             
