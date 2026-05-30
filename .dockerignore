@@ -1,0 +1,35 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+docker-compose.yml
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# SQLite temp/journal
+*.db-shm
+*.db-wal
+
+# Environment files
+.env
+
+# Build artifacts
+build/
+dist/

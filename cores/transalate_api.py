@@ -13,6 +13,8 @@ class Translator_api:
             self.__client = genai.Client(api_key=self.__my_api_key )
             self.__MODELS = [
         "gemini-3.5-flash", 
+        "gemini-3.1-flash-lite",
+        "gemini-3-flash",
         "gemini-2.5-flash", 
         "gemini-2.5-pro", 
         "gemini-2-flash", 

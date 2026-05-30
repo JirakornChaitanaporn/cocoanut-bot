@@ -1,0 +1,18 @@
+services:
+  cocoanut:
+    build: .
+    container_name: Cocoanut
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      # Updated paths to reflect the new bot name
+      - ocr_models:/root/.EasyOCR/model
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Bangkok
+    stop_grace_period: 30s
+
+volumes:
+  ocr_models:
