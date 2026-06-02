@@ -27,6 +27,9 @@ class General(commands.Cog):
     async def translate_manhwa(self, ctx: commands.Context):
         if not ctx.message.attachments:
             return await ctx.send(f"{ctx.author.mention}\nYou didn't attach anything!")
+        
+        if len(ctx.message.attachments) > 5:
+            return await ctx.send(f"{ctx.author.mention}\nYou can only upload 5 image at a time sorry for inconvience")
 
         valid_extensions = ('.png', '.jpeg', '.jpg', '.webp')
         response_lines = [f"**OCR Results Summary:**\n"]
