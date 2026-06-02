@@ -13,7 +13,13 @@ venv/
 .gitignore
 
 # Docker
+dockerfile
+Dockerfile
 docker-compose.yml
+
+# Logs
+*.log
+logs/
 
 # OS junk
 .DS_Store
@@ -29,7 +35,14 @@ Thumbs.db
 
 # Environment files
 .env
+.env.example
+
+# Docs
+README.md
 
 # Build artifacts
 build/
 dist/
+
+# Tests
+test/

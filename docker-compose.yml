@@ -1,14 +1,16 @@
 services:
   cocoanut:
-    build: .
+    build:
+      context: .
+      dockerfile: dockerfile
     container_name: Cocoanut
     restart: unless-stopped
     working_dir: /app
     env_file:
       - .env
     volumes:
-      # Updated paths to reflect the new bot name
-      - ocr_models:/root/.EasyOCR/model
+      - ocr_models:/root/.EasyOCR
+      - bot_logs:/app/logs
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Bangkok
@@ -16,3 +18,4 @@ services:
 
 volumes:
   ocr_models:
+  bot_logs:

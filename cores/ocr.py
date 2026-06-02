@@ -1,15 +1,19 @@
+import gc
 import cv2
 import numpy as np
 import easyocr
-import urllib.request # Add this import at the top of your file
+import urllib.request
+
+_MAX_DIMENSION = 1600
+
 
 class KoreanOcr:
     __instance = None
 
     def __init__(self):
         if KoreanOcr.__instance is None:
-            self.__reader = easyocr.Reader(['ko'])
-            #init stuff here
+            # quantize=True halves model memory (float32 -> int8)
+            self.__reader = easyocr.Reader(['ko'], gpu=False, quantize=True)
             KoreanOcr.__instance = self
         else:
             raise Exception("KoreanOcr can't be initiated twice!")
@@ -18,68 +22,65 @@ class KoreanOcr:
     def get_instance():
         if KoreanOcr.__instance is None:
             KoreanOcr.__instance = KoreanOcr()
-        return KoreanOcr.__instance   
+        return KoreanOcr.__instance
 
     def make_text(self, image_url):
         req = urllib.request.Request(image_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
             image_bytes = response.read()
-            
+
         nparr = np.frombuffer(image_bytes, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        
-        # 1. Grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        image = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+        del nparr, image_bytes
 
-        # 2. Noise Removal
-        denoised = cv2.fastNlMeansDenoising(gray, h=10)
+        # Cap resolution to avoid holding multiple giant arrays at once
+        h, w = image.shape
+        if max(h, w) > _MAX_DIMENSION:
+            factor = _MAX_DIMENSION / max(h, w)
+            image = cv2.resize(image, None, fx=factor, fy=factor, interpolation=cv2.INTER_AREA)
 
-        # 3. Normalization (CLAHE) - Move this BEFORE scaling/skew correction
-        # This boosts the text contrast while keeping it grayscale for EasyOCR
+        denoised = cv2.fastNlMeansDenoising(image, h=10)
+        del image
+
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         contrast_boosted = clahe.apply(denoised)
+        del denoised
 
-        # 4. Skew Correction
-        # We temporarily binarize *just* to find the text angle, without ruining the final image
         _, binary_for_skew = cv2.threshold(contrast_boosted, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        coords = np.column_stack(np.where(binary_for_skew > 0))  # foreground pixels
+        coords = np.column_stack(np.where(binary_for_skew > 0))
+        del binary_for_skew
 
         if len(coords) > 0:
-            # minAreaRect behavior can vary slightly by OpenCV version, 
-            # but this is a standard approach to normalize the angle
             rect = cv2.minAreaRect(coords)
             angle = rect[-1]
             if angle < -45:
                 angle = 90 + angle
             elif angle > 45:
                 angle = angle - 90
-                
-            # Rotate the high-contrast grayscale image, NOT the binary one
-            (h, w) = contrast_boosted.shape
-            center = (w // 2, h // 2)
-            M = cv2.getRotationMatrix2D(center, angle, 1.0)
+
+            h, w = contrast_boosted.shape
+            M = cv2.getRotationMatrix2D((w // 2, h // 2), angle, 1.0)
             deskewed = cv2.warpAffine(contrast_boosted, M, (w, h), flags=cv2.INTER_CUBIC, borderValue=255)
+            del contrast_boosted
         else:
             deskewed = contrast_boosted
 
-        # 5. Image Scaling (Upscale the clean grayscale result)
-        scale = 2.0
-        final_processed = cv2.resize(deskewed, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+        del coords
 
-        # Run OCR on the high-contrast grayscale image
-        results = self.__reader.readtext(final_processed)
+        # Only upscale small images; large ones already have enough resolution
+        if deskewed.shape[1] < 800:
+            final = cv2.resize(deskewed, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+            del deskewed
+        else:
+            final = deskewed
 
-        # Create a list to store every valid line of text found
-        extracted_lines = []
+        results = self.__reader.readtext(final)
+        del final
+        gc.collect()
 
-        for r in results:
-            box, text, confidence = r
-            if confidence < 0.24:
-                continue
-            # Clean up any trailing/leading whitespaces and add to our list
-            extracted_lines.append(text.strip())
-
-        # Join the list items together into one big string separated by newlines
-        final_text_string = "\n".join(extracted_lines)
-        return final_text_string
-
+        extracted_lines = [
+            text.strip()
+            for _, text, confidence in results
+            if confidence >= 0.24
+        ]
+        return "\n".join(extracted_lines)
