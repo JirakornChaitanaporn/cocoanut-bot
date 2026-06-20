@@ -1,4 +1,7 @@
 # Cocoanut-bot
+
+Discord bot for OCRing Korean manhwa images with EasyOCR and translating the result with Gemini.
+
 ## checkpoint 1 
 * The bot is runnable
 
