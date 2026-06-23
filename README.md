@@ -11,19 +11,6 @@ Discord bot for OCRing Korean manhwa images with EasyOCR and translating the res
 ## checkpoint 3
 * The ocr work well now the bot and read korean text on the image but no blur.
 
-# Cocoanut-bot
-
-Discord bot for OCRing Korean manhwa images with EasyOCR and translating the result with Gemini.
-
-## checkpoint 1 
-* The bot is runnable
-
-## checkpoint 2
-* The ocr is working mock only with the the one chosen being "easy ocr" but the uploaded picture must be clear, no blur text.
-
-## checkpoint 3
-* The ocr work well now the bot and read korean text on the image but no blur.
-
 # How to setup after installing everything
 
 ### 1. First open vs code
