@@ -27,7 +27,7 @@ Discord bot for OCRing Korean manhwa images with EasyOCR and translating the res
 - Go back to vs code
 - Click terminal on top bar
 - Click new terminal
-- Then you should see something similar to this
+- Then you should see something similar to this on the bottom of the screen
 <img width="848" height="231" alt="image" src="https://github.com/user-attachments/assets/27eba9c9-b6a1-43ff-8186-c8a498532740" />
 - When you are there type
 ```
