@@ -8,21 +8,14 @@ _MAX_DIMENSION = 1600
 
 
 class KoreanOcr:
-    __instance = None
+    _instance = None
 
-    def __init__(self):
-        if KoreanOcr.__instance is None:
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(KoreanOcr, cls).__new__(cls)
             # quantize=True halves model memory (float32 -> int8)
-            self.__reader = easyocr.Reader(['ko'], gpu=False, quantize=True)
-            KoreanOcr.__instance = self
-        else:
-            raise Exception("KoreanOcr can't be initiated twice!")
-
-    @staticmethod
-    def get_instance():
-        if KoreanOcr.__instance is None:
-            KoreanOcr.__instance = KoreanOcr()
-        return KoreanOcr.__instance
+            cls._instance.__reader = easyocr.Reader(['ko'], gpu=False, quantize=True)
+        return cls._instance
 
     def make_text(self, image_url):
         req = urllib.request.Request(image_url, headers={'User-Agent': 'Mozilla/5.0'})

@@ -38,7 +38,7 @@ class General(commands.Cog):
         for index, attachment in enumerate(ctx.message.attachments, start=1):
             if attachment.filename.lower().endswith(valid_extensions):
                 processed_any = True
-                read_text = KoreanOcr.get_instance().make_text(attachment.url)
+                read_text = KoreanOcr().make_text(attachment.url)
                 response_lines.append(f"**Image #{index}:**\n{read_text}\n")
             else:
                 response_lines.append(f"⚠️ **Image #{index} Skipped `{attachment.filename}` (Invalid format)\n")
@@ -47,7 +47,7 @@ class General(commands.Cog):
             return await ctx.send(f"{ctx.author.mention}\nNone of the attached files were valid images (.png, .jpg, .jpeg, .webp)!")
 
         ocr_result = "\n".join(response_lines)
-        translated = f"{ctx.author.mention}\n{Translator_api.get_instance().translate(ocr_result)}"
+        translated = f"{ctx.author.mention}\n{Translator_api().translate(ocr_result)}"
   
         return await ctx.send(translated)
 

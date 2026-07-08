@@ -4,32 +4,24 @@ from google import genai
 from google.genai.errors import APIError
 
 class Translator_api:
-    __instance = None
+    _instance = None
 
-    def __init__(self):
-        if Translator_api.__instance is None:
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Translator_api, cls).__new__(cls)
             load_dotenv()
-            self.__my_api_key = os.getenv("GEMINI_API_KEY")
-            self.__client = genai.Client(api_key=self.__my_api_key )
-            self.__MODELS = [
-        "gemini-3.5-flash", 
-        "gemini-3.1-flash-lite",
-        "gemini-3-flash",
-        "gemini-2.5-flash", 
-        "gemini-2.5-pro", 
-        "gemini-2-flash", 
-        "gemini-2-flash-lite"
-    ]
-            #init stuff here
-            Translator_api.__instance = self
-        else:
-            raise Exception("Translator_api can't be initiated twice!")
-
-    @staticmethod
-    def get_instance():
-        if Translator_api.__instance is None:
-            Translator_api.__instance = Translator_api()
-        return Translator_api.__instance   
+            cls._instance.__my_api_key = os.getenv("GEMINI_API_KEY")
+            cls._instance.__client = genai.Client(api_key=cls._instance.__my_api_key)
+            cls._instance.__MODELS = [
+                "gemini-3.5-flash", 
+                "gemini-3.1-flash-lite",
+                "gemini-3-flash",
+                "gemini-2.5-flash", 
+                "gemini-2.5-pro", 
+                "gemini-2-flash", 
+                "gemini-2-flash-lite"
+            ]
+        return cls._instance
 
     def translate(self, korean_text: str):
         if not isinstance(korean_text, str):

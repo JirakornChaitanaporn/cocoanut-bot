@@ -43,7 +43,7 @@ class Debug(commands.Cog):
         for index, attachment in enumerate(ctx.message.attachments, start=1):
             if attachment.filename.lower().endswith(valid_extensions):
                 processed_any = True
-                read_text = KoreanOcr.get_instance().make_text(attachment.url)
+                read_text = KoreanOcr().make_text(attachment.url)
                 response_lines.append(f"**Image #{index}:**\n{read_text}\n")
             else:
                 response_lines.append(f"⚠️ Skipped `{attachment.filename}` (Invalid format)\n")
