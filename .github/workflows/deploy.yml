@@ -1,0 +1,68 @@
+name: Deploy bot
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: cocoanut-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      DEPLOY_SHA: ${{ github.sha }}
+    steps:
+      - name: Update and rebuild on server
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH SSH_PRIVATE_KEY SSH_KNOWN_HOSTS; do
+            if [[ -z "${!name}" ]]; then
+              echo "Missing deployment secret: $name" >&2
+              exit 1
+            fi
+          done
+          ssh_dir=$(mktemp -d)
+          trap 'rm -rf "$ssh_dir"' EXIT
+          chmod 700 "$ssh_dir"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          chmod 600 "$ssh_dir/key" "$ssh_dir/known_hosts"
+          # Encode the path so spaces and shell characters cannot alter the remote command.
+          path_encoded=$(printf '%s' "$DEPLOY_PATH" | base64 -w 0)
+          ssh -i "$ssh_dir/key" -p "$DEPLOY_PORT" \
+            -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$ssh_dir/known_hosts" \
+            -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 \
+            "$DEPLOY_USER@$DEPLOY_HOST" "bash -s -- '$path_encoded' '$DEPLOY_SHA'" <<'REMOTE'
+          set -euo pipefail
+          cd "$(printf '%s' "$1" | base64 --decode)"
+          test -f .env
+          test "$(git branch --show-current)" = main
+          if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+            echo "Server checkout has tracked changes; resolve them before deploying." >&2
+            exit 1
+          fi
+          export GIT_TERMINAL_PROMPT=0
+          git fetch origin main
+          git merge --ff-only "$2"
+          # A newer deployment must never silently be reported as this commit.
+          test "$(git rev-parse HEAD)" = "$2"
+          docker compose config --quiet
+          docker compose build cocoanut
+          docker compose up -d --no-build --wait --wait-timeout 120 cocoanut
+          docker compose ps
+          REMOTE

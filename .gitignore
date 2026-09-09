@@ -4,3 +4,6 @@
 try
 discord.log
 __pycache__/
+
+# Local daily usage data
+data/

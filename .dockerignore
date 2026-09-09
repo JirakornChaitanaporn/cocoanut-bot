@@ -46,3 +46,6 @@ dist/
 
 # Tests
 test/
+
+# Local daily usage data
+data/

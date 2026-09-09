@@ -11,6 +11,7 @@ services:
     volumes:
       - ocr_models:/root/.EasyOCR
       - bot_logs:/app/logs
+      - bot_data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Bangkok
@@ -19,3 +20,4 @@ services:
 volumes:
   ocr_models:
   bot_logs:
+  bot_data:
