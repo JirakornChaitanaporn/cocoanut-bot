@@ -4,8 +4,33 @@ from cores.ocr import KoreanOcr
 from cores.transalate_api import Translator_api
 
 class General(commands.Cog):
+    genders = ("non_binary",
+                "genderqueer",
+                "genderfluid",
+                "agender",
+                "bigender",
+                "pangender",
+                "two_spirit",
+                "demiboy",
+                "demigirl",
+                "gay",
+                "lesbian",
+                "bisexual",
+                "queer",
+                "tomboy",)
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+
+        content = message.content.strip()
+        command_text = content[1:].lower()
+        if content.startswith("$") and any(keyword in command_text for keyword in self.KEYWORDS):
+            await message.channel.send(f"{message.author.mention} hey please respect people in all gender!")
 
     @commands.command(name="help")
     async def help(self, ctx: commands.Context):
