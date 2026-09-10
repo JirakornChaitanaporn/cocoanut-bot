@@ -22,7 +22,8 @@ class General(commands.Cog):
                 "lgbtq",
                 "bi",
                 "tragender",
-                "trans")
+                "trans", 
+                "tom")
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
